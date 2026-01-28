@@ -67,6 +67,7 @@ Host *
   ForwardX11 yes
   ForwardAgent yes
 
+
 [me@mylaptop ~]$ ssh esc1
 username@esc26s-01's password:
 Last login: ...
@@ -120,7 +121,14 @@ Now copy the key pair and the config file in ~/.ssh/ of esc1
 [me@mylaptop ~]$ scp .ssh/config esc1:.ssh/
 ```
 
-Now you should be able to log in passwordless from your laptop to esc1 and from esc1 to esc2. This passwordless login(s) will be important for the MPI exercises.
+Now you should be able to login passwordless: 
+
+* from your laptop to esc1
+* from esc1 to esc2.
+* from esc2 to esc1
+
+This passwordless login(s) will be important for the MPI exercises.
+
 Try the following, type yes when asked to add a fingerprint (this will be asked only during the first attempt).
 
 ```shell
@@ -160,12 +168,12 @@ Once logged into `esc`, verify that the environment is set up correctly:
 gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5)
 ...
 [username@esc26s-01 ~]$ gdb --version
-GNU gdb (AlmaLinux) 14.2-4.1.el9_6
+GNU gdb (AlmaLinux) 16.3-2.el9
 ...
-[username@esc26s-011 ~]$ valgrind --version
-valgrind-3.24.0
+[username@esc26s-01 ~]$ valgrind --version
+valgrind-3.25.1
 [username@esc26s-01 ~]$ scl enable gcc-toolset-14 -- gcc --version
-gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-7)
+gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-12)
 ...
 ```
 
@@ -174,8 +182,8 @@ As you can see from the last command, beside the native compiler (gcc v. 11.5), 
 To always work with the more recent version, enable the toolset in a new shell:
 
 ```shell
-[username@esc25-a100-1 ~]$ scl enable gcc-toolset-14 bash
-[username@esc25-a100-1 ~]$ gcc --version
+[username@esc26s-01 ~]$ scl enable gcc-toolset-14 bash
+[username@esc26s-01 ~]$ gcc --version
 gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-7)
 ...
 ```
