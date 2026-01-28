@@ -75,7 +75,7 @@ Last login: ...
 ```
 
 
-NOTE that esc26s-02 is not a public hostname and it is known only within esv26s-01.
+NOTE that esc26s-02 is not a public hostname and it is known only within esc26s-01.
 
 To further simplify the login to `esc1`, you can use an SSH key. You first need
 to create it (if you don't have one already), copy it remotely on both `esc1`
@@ -113,11 +113,11 @@ Last login: ...
 
 Note that we removed the ProxyJump line from the esc2 section.
 
-Now copy the key pair and the config file in ~/.ssh/ of esc1
+Now copy the key-pair and the config file in ~/.ssh/ of esc1
 
 ```shell
 [me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
-[me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
+[me@mylaptop ~]$ scp .ssh/id_rsa_student_esc.pub esc1:.ssh/
 [me@mylaptop ~]$ scp .ssh/config esc1:.ssh/
 ```
 
