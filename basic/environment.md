@@ -24,103 +24,119 @@ and
 
 ## Wi-Fi access
 
-You can use either the `eduroam` or the `CeUB` Wi-Fi networks. For the latter
-you should have received your personal credentials.
+You can use either the `eduroam` federation, ask the organization for an alternative access upon your arrival.
 
 ## SSH access to School computers
 
 You have been assigned a personal account to access computing resources
 hosted at INFN-CNAF. Credentials are that of your INFN AAI account.
 
-To log on the computers prepared for the School, you have to go first
-through the gateway host prepared for the school, named
-`esc25.cloud.cnaf.infn.it`, with your AAI username.
+Most of the exercises will be done on the following host: esc26s.cloud.cnaf.infn.it (IP: 131.154.98.210, that also has the esc26s-01 hostname).
+
+To log on this server, prepared for the School, just SSH on it using your AAI username.
 
 ```shell
-[me@mylaptop ~]$ ssh username@esc25.cloud.cnaf.infn.it
-username@esc25.cloud.cnaf.infn.it's password:
+[me@mylaptop ~]$ ssh username@esc26s.cloud.cnaf.infn.it
+username@esc26s.cloud.cnaf.infn.it's password:
 Last login: ...
-[username@esc25-bastion ~]$
+[username@esc26s-01 ~]$
 ```
 
-From `esc25-bastion` you can then log onto the School computers. There
-are two servers available, named `esc25-a100-1` and `esc25-a100-2`. Both
-are equipped with two nVidia A100 40GB GPUs, 32 CPU cores and 256 GB of
-RAM.
+From `esc26s-01` you can then log onto the other School computers. There
+are two servers available, named `esc2s-01` and `esc26s-02`. Both
+are equipped with four nVidia H100 80GB GPUs, 192 physical CPU cores and 1.5 TB of
+RAM. We will use the second one just for the MPI exercises, and you should not log on it unless the tutors tell you to this explicitely.
 
 The names of the machines can be tedious to type, but you can get around
 it by creating a config file for ssh. With the ssh configuration **on
 your laptop** you can also avoid the explicit jump through the
-`esc25-bastion` host and forward the X11 display and the SSH agent.
+`esc26s-01` host and forward the X11 display and the SSH agent.
 
 ```shell
 [me@mylaptop ~]$ cat ~/.ssh/config
-Host escbastion
-  Hostname esc25.cloud.cnaf.infn.it
+Host esc1
+  Hostname esc26s.cloud.cnaf.infn.it
   User username
 
-Host esc
-  Hostname esc25-a100-1
+Host esc2
+  Hostname esc26s-02
   User username
-  ProxyJump escbastion
+  ProxyJump esc1
 
 Host *
   ForwardX11 yes
   ForwardAgent yes
 
-[me@mylaptop ~]$ ssh esc
-username@esc25-a100-1's password:
+[me@mylaptop ~]$ ssh esc1
+username@esc26s-01's password:
 Last login: ...
-[username@esc25-a100-1 ~]$
+[username@esc26-01 ~]$
 ```
 
-To further simplify the login to `esc`, you can use an SSH key. You first need
-to create it (if you don't have one already), copy it remotely on both `esc25-bastion`
-and `esc` and set it in your SSH configuration.
+
+NOTE that esc26s-02 is not a public hostname and it is known only within esv26s-01.
+
+To further simplify the login to `esc1`, you can use an SSH key. You first need
+to create it (if you don't have one already), copy it remotely on both `esc1`
+and `esc2` and set it in your SSH configuration.
 
 ```shell
-[me@mylaptop ~]$ ssh-keygen -C username@esc -f ~/.ssh/id_rsa_student_esc
+[me@mylaptop ~]$ ssh-keygen -C username@esc1 -f ~/.ssh/id_rsa_student_esc
 Generating public/private rsa key pair.
 ...
-[me@mylaptop ~]$ ssh-copy-id -i ~/.ssh/id_rsa_student_esc escbastion
+[me@mylaptop ~]$ ssh-copy-id -i ~/.ssh/id_rsa_student_esc esc1
 /usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/me/.ssh/id_rsa_student_esc.pub"
 ...
-username@esc25-a100-1's password: 
+username@esc26s-01's password: 
 ...
-[me@mylaptop ~]$ ssh-copy-id -i ~/.ssh/id_rsa_student_esc esc
-/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/me/.ssh/id_rsa_student_esc.pub"
-...
-username@esc25-a100-1's password: 
-...
+
 [me@mylaptop ~]$ cat ~/.ssh/config
-Host escbastion
-  Hostname esc25.cloud.cnaf.infn.it
+Host esc1
+  Hostname esc26s.cloud.cnaf.infn.it
   User username
   IdentityFile ~/.ssh/id_rsa_student_esc
 
-Host esc
-  Hostname esc25-a100-1
+Host esc2
+  Hostname esc26s-02
   User username
   IdentityFile ~/.ssh/id_rsa_student_esc
-  ProxyJump escbastion
 
 Host *
   ForwardX11 yes
   ForwardAgent yes
-[me@mylaptop ~]$ ssh esc
+
+[me@mylaptop ~]$ ssh esc1
 Last login: ...
-[username@esc25-a100-1 ~]$ 
+[username@esc26s-01 ~]$ 
 ```
+
+Note that we removed the ProxyJump line from the esc2 section.
+
+Now copy the key pair and the config file in ~/.ssh/ of esc1
+
+```shell
+[me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
+[me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
+[me@mylaptop ~]$ scp .ssh/config esc1:.ssh/
+```
+
+Now you should be able to log in passwordless from your laptop to esc1 and from esc1 to esc2. This passwordless login(s) will be important for the MPI exercises.
+Try the following, type yes when asked to add a fingerprint (this will be asked only during the first attempt).
+
+```shell
+[me@mylaptop ~]$ ssh esc1
+[username@esc26s-01 ~]$ ssh esc2
+[username@esc26s-02 ~]$ ssh esc1
+[username@esc26s-01 ~]$ 
+```
+
 
 Your shell is [`bash`](https://www.gnu.org/s/bash).
 
 Please note that:
 
-* The `esc25-bastion` host is useful and needed only as a gateway to
-  `esc`. Don't execute heavy programs on it.
 * Each `esc` computer is not assigned exclusively to a student.
-* Your home directory is shared between all `esc` computers, including
-  the `esc25-bastion`.
+* Your home directory is shared between all `esc` computers
 * Your home directory will be wiped out and your `username` account will
   be disabled soon after the end of the School. Please make sure to save
   somewhere else what you want to keep.
@@ -130,7 +146,7 @@ Please note that:
 All the school hands-on material is included in a git repository. Get it using:
 
 ```shell
-[username@esc25-a100-1 ~]$ git clone {{ site.github.clone_url }}
+[username@esc26s-01 ~]$ git clone {{ site.github.clone_url }}
 ```
 
 The repository contains also these pages.
@@ -140,15 +156,15 @@ The repository contains also these pages.
 Once logged into `esc`, verify that the environment is set up correctly:
 
 ```shell
-[username@esc25-a100-1 ~]$ gcc --version
+[username@esc26s-01 ~]$ gcc --version
 gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5)
 ...
-[username@esc25-a100-1 ~]$ gdb --version
+[username@esc26s-01 ~]$ gdb --version
 GNU gdb (AlmaLinux) 14.2-4.1.el9_6
 ...
-[username@esc25-a100-1 ~]$ valgrind --version
+[username@esc26s-011 ~]$ valgrind --version
 valgrind-3.24.0
-[username@esc25-a100-1 ~]$ scl enable gcc-toolset-14 -- gcc --version
+[username@esc26s-01 ~]$ scl enable gcc-toolset-14 -- gcc --version
 gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-7)
 ...
 ```
