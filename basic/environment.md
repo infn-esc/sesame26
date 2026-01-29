@@ -95,7 +95,7 @@ Last login: ...
 [username@esc26s-01 ~]$ 
 ```
 
-Now, to allow passwordless authentication between the to esc nodes for the MPI exercises, you should copy the key-pair and the config file in ~/.ssh/ of esc1 (which is shared also with esc2).
+Now, to allow passwordless authentication between the to esc nodes for the MPI exercises, you should copy the key-pair and the config file in ~/.ssh/ of esc1 (which is, by the way, also shared with esc2).
 
 ```shell
 [me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
@@ -223,12 +223,14 @@ your use of SSH to connect to `esc`, as described above.
 
 ## Environment configuration for MPI hands-on
 
+To execute the MPI exercises you should be able to login passwordless among the esc nodes as shown in the previous paragraphs.
+
 ### .bashrc configuration to locate openmpi bins and libs
-OpenMPI is installed on the nodes, but it is needed to add to the .bashrc the following exports:
+OpenMPI is installed and configured on the esc nodes. Just check that the "mpirun" command is avaible in this way:
 
 ```shell
-export PATH=$PATH:/usr/lib64/openmpi/bin/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/openmpi/lib
+[username@esc26s-01 ~]$ which mpirun
+/opt/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda13-x86_64/ompi/bin/mpirun
 ```
 
 
