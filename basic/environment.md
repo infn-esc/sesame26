@@ -225,7 +225,6 @@ your use of SSH to connect to `esc`, as described above.
 
 To execute the MPI exercises you should be able to login passwordless among the esc nodes as shown in the previous paragraphs.
 
-### .bashrc configuration to locate openmpi bins and libs
 OpenMPI is installed and configured on the esc nodes. Just check that the "mpirun" command is avaible in this way:
 
 ```shell
