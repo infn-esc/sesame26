@@ -46,6 +46,7 @@ From `esc26s-01` you can then log onto the other School computers. There
 are two servers available, named `esc2s-01` and `esc26s-02`. Both
 are equipped with four nVidia H100 80GB GPUs, 192 physical CPU cores and 1.5 TB of
 RAM. We will use the second one just for the MPI exercises, and you should not log on it unless the tutors tell you to this explicitely.
+NOTE that esc26s-02 is not a public hostname and it is known only within esc26s-01.
 
 The names of the machines can be tedious to type, but you can get around
 it by creating a config file for ssh. With the ssh configuration **on
@@ -57,13 +58,6 @@ your laptop** you can also avoid the explicit jump through the
 Host esc1
   Hostname esc26s.cloud.cnaf.infn.it
   User username
-
-Host esc2
-  Hostname esc26s-02
-  User username
-  ProxyJump esc1
-
-Host *
   ForwardX11 yes
   ForwardAgent yes
 
@@ -74,12 +68,8 @@ Last login: ...
 [username@esc26-01 ~]$
 ```
 
-
-NOTE that esc26s-02 is not a public hostname and it is known only within esc26s-01.
-
 To further simplify the login to `esc1`, you can use an SSH key. You first need
-to create it (if you don't have one already), copy it remotely on both `esc1`
-and `esc2` and set it in your SSH configuration.
+to create it (if you don't have one already), copy it remotely on `esc1` and set it in your SSH configuration.
 
 ```shell
 [me@mylaptop ~]$ ssh-keygen -C username@esc1 -f ~/.ssh/id_rsa_student_esc
@@ -96,29 +86,41 @@ Host esc1
   Hostname esc26s.cloud.cnaf.infn.it
   User username
   IdentityFile ~/.ssh/id_rsa_student_esc
-
-Host esc2
-  Hostname esc26s-02
-  User username
-  IdentityFile ~/.ssh/id_rsa_student_esc
-
-Host *
   ForwardX11 yes
   ForwardAgent yes
+
 
 [me@mylaptop ~]$ ssh esc1
 Last login: ...
 [username@esc26s-01 ~]$ 
 ```
 
-Note that we removed the ProxyJump line from the esc2 section.
-
-Now copy the key-pair and the config file in ~/.ssh/ of esc1
+Now, to allow passwordless authentication between the to esc nodes for the MPI exercises, you should copy the key-pair and the config file in ~/.ssh/ of esc1 (which is shared also with esc2).
 
 ```shell
 [me@mylaptop ~]$ scp .ssh/id_rsa_student_esc esc1:.ssh/
 [me@mylaptop ~]$ scp .ssh/id_rsa_student_esc.pub esc1:.ssh/
 [me@mylaptop ~]$ scp .ssh/config esc1:.ssh/
+```
+
+Now edit the .ssh/config file in esc1 to add an entry also for esc2.
+
+```shell
+[username@esc26s-01 ~]$ cat ~/.ssh/config
+Host esc1
+  Hostname esc26s.cloud.cnaf.infn.it
+  User username
+  IdentityFile ~/.ssh/id_rsa_student_esc
+  ForwardX11 yes
+  ForwardAgent yes
+
+Host esc2
+  Hostname esc26s-02
+  User username
+  IdentityFile ~/.ssh/id_rsa_student_esc
+  ForwardX11 yes
+  ForwardAgent yes
+
 ```
 
 Now you should be able to login passwordless: 
@@ -165,7 +167,7 @@ Once logged into `esc`, verify that the environment is set up correctly:
 
 ```shell
 [username@esc26s-01 ~]$ gcc --version
-gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5)
+gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-11)
 ...
 [username@esc26s-01 ~]$ gdb --version
 GNU gdb (AlmaLinux) 16.3-2.el9
@@ -229,39 +231,6 @@ export PATH=$PATH:/usr/lib64/openmpi/bin/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/openmpi/lib
 ```
 
-### Enabling passwordless ssh between the compute nodes
-To run the multinode exercises passwordless ssh must be enabled among all the nodes involved in the computation.
-
-An easy way to implement this is to create a new ssh rsa key in one of the nodes and add the newly created public key to the authorized_key file, in the very same way you already did to enable passwordless ssh between the bastion node and the compute nodes, i.e.:
-
-```shell
-[me@esc1 ~]$ ssh-keygen -C username@esc -f ~/.ssh/id_rsa_student_escMPI
-Generating public/private rsa key pair.
-...
-[me@mesc1 ~]$  cat ~/.ssh/id_rsa_student_escMPI.pub >> ~/.ssh/authorized_keys
-
-[me@esc1 ~]$ cat ~/.ssh/config
-
-Host esc1
-  Hostname esc25-a100-1
-  User username
-  IdentityFile ~/.ssh/id_rsa_student_escMPI
-
-
-Host esc2
-  Hostname esc25-a100-2
-  User username
-  IdentityFile ~/.ssh/id_rsa_student_escMPI
-
-Host *
-  ForwardX11 yes
-  ForwardAgent yes
-
-
-[me@esc1 ~]$ ssh esc2
-[me@esc2 ~]$ ssh esc1
-
-```
 
 ## Environment configuration for TBB hands-on
 
