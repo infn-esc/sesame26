@@ -46,6 +46,14 @@ menu:
 #       label: CUDA
 #     - name: mpi
 #       label: MPI
+  - name: pybind
+    label: Python bindings
+    items:
+    - name: cpp_to_py
+      label: Using C++ in Python
+    - name: py_to_cpp
+      label: Using Python in C++
+
 
 # defaults:
 #   -
