@@ -16,6 +16,18 @@ menu:
     items:
     - name: environment
     - name: compiling
+  - name: memory
+    label: Memory Management
+    items:
+    - name: basics
+    - name: fs
+      label: False Sharing 
+    - name: datastructure
+      label: Data structures
+    - name: asan
+      label: Address Sanitizer
+    - name: am 
+      label: Atomics and Mutex 
 #   - name: architecture
 #     items:
 #     - name: discoverHW
