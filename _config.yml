@@ -34,21 +34,13 @@ menu:
 #       label: Discover Hardware Architecture
 #     - name: perf
 #       label: Profiling using "perf"
-#   - name: cpp
-#     label: C++
-#     items:
-#     - name: algorithms
-#       label: Algorithms
-#     - name: pointers
-#       label: Managing resources
-#     - name: move_ops
-#       label: Move operations
-#     - name: rvo
-#       label: Return Value Optimization
-#     - name: containers
-#       label: Containers
-#     - name: compiletime
-#       label: Compile-time computation
+  - name: cpp
+    label: C++
+    items:
+    - name: containers
+    - name: algorithms
+    - name: move_ops
+      label: Move operations
 #   - name: parallelism
 #     label: PARALLELISM
 #     items:
