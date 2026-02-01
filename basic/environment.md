@@ -78,7 +78,7 @@ Generating public/private rsa key pair.
 [me@mylaptop ~]$ ssh-copy-id -i ~/.ssh/id_rsa_student_esc esc1
 /usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/me/.ssh/id_rsa_student_esc.pub"
 ...
-username@esc26s-01's password: 
+username@esc26s-01's password:
 ...
 
 [me@mylaptop ~]$ cat ~/.ssh/config
@@ -92,7 +92,7 @@ Host esc1
 
 [me@mylaptop ~]$ ssh esc1
 Last login: ...
-[username@esc26s-01 ~]$ 
+[username@esc26s-01 ~]$
 ```
 
 Now, to allow passwordless authentication between the to esc nodes for the MPI exercises, you should copy the key-pair and the config file in ~/.ssh/ of esc1 (which is, by the way, also shared with esc2).
@@ -123,7 +123,7 @@ Host esc2
 
 ```
 
-Now you should be able to login passwordless: 
+Now you should be able to login passwordless:
 
 * from your laptop to esc1
 * from esc1 to esc2.
@@ -137,7 +137,7 @@ Try the following, type yes when asked to add a fingerprint (this will be asked 
 [me@mylaptop ~]$ ssh esc1
 [username@esc26s-01 ~]$ ssh esc2
 [username@esc26s-02 ~]$ ssh esc1
-[username@esc26s-01 ~]$ 
+[username@esc26s-01 ~]$
 ```
 
 
