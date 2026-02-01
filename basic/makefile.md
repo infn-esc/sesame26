@@ -20,21 +20,24 @@ g++ pi_time.cpp -std=c++20 -O2 -Wall -Wextra -o pi_time
 
 ### What is a `Makefile`
 
-A `Makefile` is a text file with a list of **RULES** that describe how to build
-a **TARGET** (in this case, `pi_time`) from some **DEPENDENCIES** (in this case,
-`pi_time.cpp`) running various commands (`g++ ...`):
+A [`Makefile`](https://www.gnu.org/software/make/manual/make.html#Makefiles) is
+a text file with a list of [**rules**](https://www.gnu.org/software/make/manual/make.html#Rule-Syntax)
+which describe how to build one ore more **target** files (in this case, `pi_time`)
+from their dependencies or **prerequisites** (in this case, `pi_time.cpp`)
+by executing a **recipe** made of various **commands** (`g++ ...`):
 ```make
-TARGET: DEPENDENCIES
-	COMMAND
-	COMMAND
+targets: dependencies
+	command
+	command
 	...
 ```
 
-Note that the lines with the COMMANDS must start with a `<tab>` character, not
-spaces!
+Two things to note: first, the lines with the **commands** must start with a
+`<tab>` character, not spaces! And each line is independent from the others, so
+things like `cd` or setting a shell variable are lost between lines.
 
 
-### What is it for ?
+### Advantages of `make`
 
 The main reasons for writing and using a `Makefile` are to simplify the
 compilation, and to build only what is needed.
@@ -54,11 +57,11 @@ make: 'pi_time' is up to date.
 ```
 
 
-### Dependencies
+### Prerequisites
 
 When you run `make`, it will check if the target exists or not.
-If if does, it will compare its timestamp with that of the dependencies, and
-rebuild the target only if any of the dependencies is newer that it is.
+If if does, it will compare its timestamp with that of its prerequisites, and
+rebuild the target only if any of the prerequisites is newer that it is.
 
 If we make any changes to the sources, or just "touch" them to update their
 timestamp, `make` will happily rebuild the target when we ask it:
@@ -83,7 +86,7 @@ pi_time: pi_time.cpp Makefile
 	$(CXX) pi_time.cpp $(CXXFLAGS) -o pi_time
 ```
 
-Note that We added the `Makefile` itself to the list of dependencies, so `make`
+Note that We added the `Makefile` itself to the list of prerequisites, so `make`
 will rebuild the target when the rules are updated.
 
 Variables are written in uppercase by convention, but almost any word will work.
@@ -122,16 +125,17 @@ using similar commands.
 For example, we can add
 ```make
 deb/pi_time: pi_time.cpp Makefile
-        mkdir -p deb
-        $(CXX) $< $(CXXFLAGS) -Og -g -o $@
+	mkdir -p deb
+	$(CXX) $< $(CXXFLAGS) -Og -g -o $@
 ```
 to build a _debug_ version of the example.
 
 But if we run `make`, it will build only the regular `pi_time`... why ?
 
 By default, `make` will build only the first target.
-So, a commond approach is to add a first "phony" or "fake" target that lists as
-dependnecies all the targets that we want to build:
+A common approach is to add a first ["phony"](https://www.gnu.org/software/make/manual/make.html#Phony-Targets)
+(or "fake") target that lists as dependnecies all the targets that we want to
+build:
 ```
 .PHONY: all
 
@@ -155,8 +159,8 @@ g++ pi_time.cpp -std=c++20 -Wall -march=native -Og -g -o deb/pi_time
 
 ### Cleaning up
 
-Another common "phony" target is `clean`, used to tell `make` to delete the
-files it may have built:
+Another common target is `clean`, used to tell `make` to delete the files it may
+have built:
 ```make
 .PHONY: clean
 
@@ -170,11 +174,53 @@ $ make clean
 rm -f pi_time deb/pi_time
 ```
 
-Note that, since `clean` does not have any dependencies, `make` will run its
-commands every time we invoke it:
+Since we have declared `clean` as a "phony" target, `make` will run its
+recipe every time we invoke it:
 ```
 $ make clean
 rm -f pi_time deb/pi_time
 $ make clean
 rm -f pi_time deb/pi_time
 ```
+
+
+### Parallel builds
+
+When `make` knows all the dependencies among the different targets, it can also
+compile more of them [in parallel](https://www.gnu.org/software/make/manual/make.html#Parallel)
+to speed up the build process.
+
+You can run multiple compilation jobs in parallell passing the `-j N` option to
+`make`:
+```shell
+$ make clean
+rm -f pi_time deb/pi_time
+$ make -j 2
+# Make will start both rules in parallel ...
+g++ pi_time.cpp -std=c++20 -Wall -march=native -o pi_time
+mkdir -p deb
+g++ pi_time.cpp -std=c++20 -Wall -march=native -Og -g -o deb/pi_time
+# ... and wil wait for both of them to complete
+```
+
+
+### ... and more
+
+Simple rules and variables let you automate many common compilation tasks, but
+for more complex projects you may need to deal with file discovery, manipulate
+paths and strings, run external commands, and so on.
+
+`make` has many more features to help with complex projects:
+  - [functions](https://www.gnu.org/software/make/manual/make.html#Functions)
+    like `$(filter ...)` and `$(sort ...)`;
+  - [conditionals](https://www.gnu.org/software/make/manual/make.html#Conditionals);
+  - variable expansion with
+    [pattern substitution](https://www.gnu.org/software/make/manual/make.html#Substitution-Refs);
+  - integration with the shell using the `$(shell ...)`
+    [function](https://www.gnu.org/software/make/manual/make.html#Shell-Function);
+  - more advanced [rules](https://www.gnu.org/software/make/manual/make.html#Rules)
+    and [variables](https://www.gnu.org/software/make/manual/make.html#Using-Variables);
+  - and more.
+
+Check the full [documentation](https://www.gnu.org/software/make/manual/make.html)
+for GNU Make online.
