@@ -194,10 +194,10 @@ gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-7)
 
 ### Editing locally
 
-On `esc` you can find several editors available, such as `vim`, `nvim`, `hx`, and `emacs`. If
-the X display is available, graphical editors will open a window on your laptop;
-the network latency however may not be good enough to give you a fine
-experience. Just try.
+On `esc` you can find several editors available, such as `vim`, `nvim`,
+`hx`, and `emacs`. If the X display is available, graphical editors will
+open a window on your laptop; the network latency however may not be
+good enough to give you a fine experience. Just try.
 
 ### Editing remotely
 
