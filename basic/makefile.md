@@ -71,6 +71,7 @@ $ make
 g++ pi_time.cpp -std=c++20 -O2 -Wall -Wextra -o pi_time
 ```
 
+
 ### Variables
 
 Once a `Makefile` gorws in complexity - for example if you have multiple source
@@ -136,7 +137,7 @@ By default, `make` will build only the first target.
 A common approach is to add a first ["phony"](https://www.gnu.org/software/make/manual/make.html#Phony-Targets)
 (or "fake") target that lists as dependnecies all the targets that we want to
 build:
-```
+```make
 .PHONY: all
 
 all: release debug
@@ -169,14 +170,14 @@ clean:
 ```
 
 Now we can run `make clean` to delete the binaries we have built:
-```
+```bash
 $ make clean
 rm -f pi_time deb/pi_time
 ```
 
 Since we have declared `clean` as a "phony" target, `make` will run its
 recipe every time we invoke it:
-```
+```bash
 $ make clean
 rm -f pi_time deb/pi_time
 $ make clean
