@@ -16,6 +16,7 @@ menu:
     items:
     - name: environment
     - name: compiling
+    - name: makefile
   - name: memory
     label: Memory Management
     items:
