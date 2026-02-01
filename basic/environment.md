@@ -174,12 +174,12 @@ GNU gdb (AlmaLinux) 16.3-2.el9
 ...
 [username@esc26s-01 ~]$ valgrind --version
 valgrind-3.25.1
-[username@esc26s-01 ~]$ scl enable gcc-toolset-14 -- gcc --version
-gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-12)
+[username@esc26s-01 ~]$ scl enable gcc-toolset-15 -- gcc --version
+gcc (GCC) 15.1.1 20250521 (Red Hat 15.1.1-2)
 ...
 ```
 
-As you can see from the last command, beside the native compiler (gcc v. 11.5), there is also a more recent version (gcc v. 14.2), available through a so-called software collection.
+As you can see from the last command, beside the native compiler (gcc v. 11.5), there are also more recent version (gcc v. 14.2 and 15.1), available through a so-called software collection.
 
 To always work with the more recent version, enable the toolset in a new shell:
 
@@ -187,6 +187,10 @@ To always work with the more recent version, enable the toolset in a new shell:
 [username@esc26s-01 ~]$ scl enable gcc-toolset-14 bash
 [username@esc26s-01 ~]$ gcc --version
 gcc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-7)
+
+[username@esc26s-01 ~]$ scl enable gcc-toolset-15 bash
+[username@esc26s-01 ~]$ gcc --version
+gcc (GCC) 15.1.1 20250521 (Red Hat 15.1.1-2)
 ...
 ```
 
