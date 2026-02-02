@@ -37,7 +37,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#include "sixel.h"
+#define FMT_HEADER_ONLY
+#include "fmt/core.h"
+#include "fmt/color.h"
 
 using namespace std::literals;
 
@@ -146,15 +148,15 @@ struct Image {
     data_ = nullptr;
   }
 
-  static int sixel_write(char* data, int size, void* priv) { return fwrite(data, 1, size, (FILE*)priv); }
-
   // show an image on the terminal, using up to max_width columns (with one block per column) and up to max_height lines (with two blocks per line)
   void show(int max_width, int max_height) {
     if (data_ == nullptr) {
       return;
     }
 
-    /*
+    // two blocks per line
+    max_height = max_height * 2;
+
     // find the best size given the max width and height and the image aspect ratio
     int width, height;
     if (width_ * max_height > height_ * max_width) {
@@ -164,25 +166,30 @@ struct Image {
       width = max_height * width_ / height_;
       height = max_height;
     }
-    */
 
-    sixel_output_t* output = nullptr;
-    auto status = sixel_output_new(&output, sixel_write, stdout, nullptr);
-    if (SIXEL_FAILED(status))
-      exit(EXIT_FAILURE);
-
-    sixel_dither_t* dither = sixel_dither_get(SIXEL_BUILTIN_XTERM256);
-    if (channels_ == 1) {
-      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_G8);
-    } else if (channels_ == 3) {
-      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGB888);
-    } else if (channels_ == 4) {
-      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGBA8888);
+    // two blocks per line
+    for (int j = 0; j < height; j += 2) {
+      int y1 = j * height_ / height;
+      int y2 = (j + 1) * height_ / height;
+      // one block per column
+      for (int i = 0; i < width; ++i) {
+        int x = i * width_ / width;
+        int p = (y1 * width_ + x) * channels_;
+        int r = data_[p];
+        int g = data_[p + 1];
+        int b = data_[p + 2];
+        auto style = fmt::fg(fmt::rgb(r, g, b));
+        if (y2 < height_) {
+          p = (y2 * width_ + x) * channels_;
+          r = data_[p];
+          g = data_[p + 1];
+          b = data_[p + 2];
+          style |= fmt::bg(fmt::rgb(r, g, b));
+        }
+        std::cout << fmt::format(style, "▀");
+      }
+      std::cout << '\n';
     }
-
-    status = sixel_encode(data_, width_, height_, 0, dither, output);
-    if (SIXEL_FAILED(status))
-      exit(EXIT_FAILURE);
   }
 };
 
