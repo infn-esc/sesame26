@@ -48,7 +48,7 @@ menu:
 #     - name: cuda
 #       label: CUDA
   - name: mpi
-       label: MPI
+    label: MPI
     items:
        - name: MPIusage
          label: Launching MPI Programs
