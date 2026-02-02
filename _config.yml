@@ -21,10 +21,10 @@ menu:
     label: Memory Management
     items:
     - name: basics
-    - name: fs
-      label: False Sharing 
     - name: datastructure
       label: Data structures
+    - name: fs
+      label: False Sharing 
     - name: asan
       label: Address Sanitizer
 #   - name: architecture
