@@ -50,7 +50,7 @@ void measure_sequential(T a, std::vector<T> const& x, std::vector<T> const& y) {
 
 int main() {
   const std::size_t size = 100'000'000;
-  const std::size_t times = 10;
+  const std::size_t repetitions = 10;
 
   std::mt19937 gen{std::random_device{}()};
   std::uniform_real_distribution<float> dis{-std::numbers::pi, std::numbers::pi};
@@ -60,13 +60,12 @@ int main() {
   std::vector<float> y(size);
   std::ranges::generate(y, [&] { return dis(gen); });
 
-  std::cout << "sequential axpy\n";
-  for (size_t i = 0; i < times; ++i)
+  std::cout << "sequential saxpy\n";
+  for (size_t i = 0; i < repetitions; ++i)
     measure_sequential(a, x, y);
   std::cout << '\n';
 
   // TODO
   //   - write a parallel version of sequential_axpy using tbb::parallel_for
   //   - measure its performance compared to sequential_axpy
-
 }
