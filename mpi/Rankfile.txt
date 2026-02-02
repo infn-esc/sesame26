@@ -1,2 +1,0 @@
-rank 0=esc26s-01 slot=pu0
-rank 1=esc26s-02 slot=pu16
