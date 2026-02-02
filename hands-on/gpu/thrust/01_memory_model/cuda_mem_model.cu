@@ -27,7 +27,7 @@ int main() {
   // Pointer and dimension for host memory
   int dim = 1024;
   // Part 1 of 6: allocate a buffer in host memory with increasing values from 0 to
-  // dimA - 1
+  // dim - 1
   auto h_buffer = ...;
 
   // Part 2 of 6: allocate two buffers in device memory
@@ -42,7 +42,7 @@ int main() {
 
   // Part 5 of 6: set all the values in the host buffer to zero
 
-  // Part 6 of 6: copy the contant back to the host buffer
+  // Part 6 of 6: copy the centant back to the host buffer
 
   // Verify the data on the host is correct
   assert(std::ranges::equal(h_buffer, std::views::iota(0, dim)));
