@@ -24,28 +24,22 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <random>
 #include <vector>
 
-void measure(bool verbose, std::vector<std::uint64_t> v) {
+void measure(std::vector<std::uint64_t> v) {
   const auto start = std::chrono::steady_clock::now();
   std::sort(v.begin(), v.end());
   const auto finish = std::chrono::steady_clock::now();
-  if (verbose) {
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";
-  }
+  std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";
   assert(std::ranges::is_sorted(v));
 }
 
-void repeat(std::vector<std::uint64_t> const& v, size_t times, size_t skip = 0) {
-  for (size_t i = 0; i < skip; ++i) {
-    measure(false, v);
-  }
+void repeat(std::vector<std::uint64_t> const& v, size_t times) {
   for (size_t i = 0; i < times; ++i) {
-    measure(true, v);
+    measure(v);
   }
 }
 
 int main() {
   const std::size_t size = 1'000'000;
-  const std::size_t skip = 1;
   const std::size_t repeats = 10;
 
   std::vector<std::uint64_t> v(size);
@@ -53,7 +47,7 @@ int main() {
   std::ranges::generate(v, gen);
 
   std::cout << "sequential sort\n";
-  repeat(v, repeats, skip);
+  repeat(v, repeats);
   std::cout << '\n';
 
   // TODO
