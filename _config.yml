@@ -47,8 +47,11 @@ menu:
 #       label: Parallel C++
 #     - name: cuda
 #       label: CUDA
-     - name: mpi
+  - name: mpi
        label: MPI
+    items:
+       - name: MPIusage
+         label: Launching MPI Programs
   - name: pybind
     label: Python bindings
     items:
