@@ -27,8 +27,6 @@ menu:
       label: Data structures
     - name: asan
       label: Address Sanitizer
-    - name: am 
-      label: Atomics and Mutex 
 #   - name: architecture
 #     items:
 #     - name: discoverHW
