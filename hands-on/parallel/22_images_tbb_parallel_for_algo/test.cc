@@ -24,7 +24,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <format>
 #include <iostream>
 #include <stdexcept>
-#include <syncstream>
 #include <vector>
 
 #ifdef __linux__
@@ -40,9 +39,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define FMT_HEADER_ONLY
-#include "fmt/core.h"
-#include "fmt/color.h"
+#include "sixel.h"
 
 using namespace std::literals;
 
@@ -120,14 +117,12 @@ struct Image {
   }
 
   void open(std::string const& filename) {
-    std::osyncstream out(std::cout);
-
     data_ = stbi_load(filename.c_str(), &width_, &height_, &channels_, 0);
     if (data_ == nullptr) {
       throw std::runtime_error("Failed to load "s + filename);
     }
-    out << "Loaded image with " << width_ << " x " << height_ << " pixels and " << channels_ << " channels from "
-        << filename << '\n';
+    std::cout << "Loaded image with " << width_ << " x " << height_ << " pixels and " << channels_ << " channels from "
+              << filename << '\n';
   }
 
   void write(std::string const& filename) {
@@ -153,52 +148,34 @@ struct Image {
     data_ = nullptr;
   }
 
+  static int sixel_write(char* data, int size, void* priv) {
+    // callback for output sixel
+    return fwrite(data, 1, size, (FILE*)priv);
+  }
+
   // show an image on the terminal, using up to max_width columns (with one block per column) and up to max_height lines (with two blocks per line)
   void show(int max_width, int max_height) {
     if (data_ == nullptr) {
       return;
     }
 
-    // two blocks per line
-    max_height = max_height * 2;
+    sixel_output_t* output = nullptr;
+    auto status = sixel_output_new(&output, sixel_write, stdout, nullptr);
+    if (SIXEL_FAILED(status))
+      exit(EXIT_FAILURE);
 
-    // find the best size given the max width and height and the image aspect ratio
-    int width, height;
-    if (width_ * max_height > height_ * max_width) {
-      width = max_width;
-      height = max_width * height_ / width_;
-    } else {
-      width = max_height * width_ / height_;
-      height = max_height;
+    sixel_dither_t* dither = sixel_dither_get(SIXEL_BUILTIN_XTERM256);
+    if (channels_ == 1) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_G8);
+    } else if (channels_ == 3) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGB888);
+    } else if (channels_ == 4) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGBA8888);
     }
 
-    std::osyncstream out(std::cout);
-
-    // two blocks per line
-    for (int j = 0; j < height; j += 2) {
-      int y1 = j * height_ / height;
-      int y2 = (j + 1) * height_ / height;
-      // one block per column
-      for (int i = 0; i < width; ++i) {
-        int x = i * width_ / width;
-        int p = (y1 * width_ + x) * channels_;
-        int r = data_[p];
-        int g = data_[p + 1];
-        int b = data_[p + 2];
-        auto style = fmt::fg(fmt::rgb(r, g, b));
-        if (y2 < height_) {
-          p = (y2 * width_ + x) * channels_;
-          r = data_[p];
-          g = data_[p + 1];
-          b = data_[p + 2];
-          style |= fmt::bg(fmt::rgb(r, g, b));
-        }
-        out << fmt::format(style, "▀");
-      }
-      out << '\n';
-    }
-
-    // out is streamed to std::cout and flushed
+    status = sixel_encode(data_, width_, height_, 0, dither, output);
+    if (SIXEL_FAILED(status))
+      exit(EXIT_FAILURE);
   }
 };
 
@@ -216,54 +193,59 @@ Image scale(Image const& src, int width, int height) {
 
   auto start = std::chrono::steady_clock::now();
 
-  for (int y = 0; y < height; ++y) {
-    // map the row of the scaled image to the nearest rows of the original image
-    float yp = static_cast<float>(y) * src.height_ / height;
-    int y0 = std::clamp(static_cast<int>(std::floor(yp)), 0, src.height_ - 1);
-    int y1 = std::clamp(static_cast<int>(std::ceil(yp)), 0, src.height_ - 1);
+  tbb::parallel_for(
+      tbb::blocked_range2d<int, int>{0, height, 16, 0, width, 16},
+      [&](tbb::blocked_range2d<int, int> const& range) {
+        for (int y = range.rows().begin(); y < range.rows().end(); ++y) {
+          // map the row of the scaled image to the nearest rows of the original image
+          float yp = static_cast<float>(y) * src.height_ / height;
+          int y0 = std::clamp(static_cast<int>(std::floor(yp)), 0, src.height_ - 1);
+          int y1 = std::clamp(static_cast<int>(std::ceil(yp)), 0, src.height_ - 1);
 
-    // interpolate between y0 and y1
-    float wy0 = yp - y0;
-    float wy1 = y1 - yp;
-    // if the new y coorindate maps to an integer coordinate in the original image, use a fake distance from identical values corresponding to it
-    if (y0 == y1) {
-      wy0 = 1.f;
-      wy1 = 1.f;
-    }
-    float dy = wy0 + wy1;
+          // interpolate between y0 and y1
+          float wy0 = yp - y0;
+          float wy1 = y1 - yp;
+          // if the new y coorindate maps to an integer coordinate in the original image, use a fake distance from identical values corresponding to it
+          if (y0 == y1) {
+            wy0 = 1.f;
+            wy1 = 1.f;
+          }
+          float dy = wy0 + wy1;
 
-    for (int x = 0; x < width; ++x) {
-      int p = (y * out.width_ + x) * out.channels_;
+          for (int x = range.cols().begin(); x < range.cols().end(); ++x) {
+            int p = (y * out.width_ + x) * out.channels_;
 
-      // map the column of the scaled image to the nearest columns of the original image
-      float xp = static_cast<float>(x) * src.width_ / width;
-      int x0 = std::clamp(static_cast<int>(std::floor(xp)), 0, src.width_ - 1);
-      int x1 = std::clamp(static_cast<int>(std::ceil(xp)), 0, src.width_ - 1);
+            // map the column of the scaled image to the nearest columns of the original image
+            float xp = static_cast<float>(x) * src.width_ / width;
+            int x0 = std::clamp(static_cast<int>(std::floor(xp)), 0, src.width_ - 1);
+            int x1 = std::clamp(static_cast<int>(std::ceil(xp)), 0, src.width_ - 1);
 
-      // interpolate between x0 and x1
-      float wx0 = xp - x0;
-      float wx1 = x1 - xp;
-      // if the new x coordinate maps to an integer coordinate in the original image, use a fake distance from identical values corresponding to it
-      if (x0 == x1) {
-        wx0 = 1.f;
-        wx1 = 1.f;
-      }
-      float dx = wx0 + wx1;
+            // interpolate between x0 and x1
+            float wx0 = xp - x0;
+            float wx1 = x1 - xp;
+            // if the new x coordinate maps to an integer coordinate in the original image, use a fake distance from identical values corresponding to it
+            if (x0 == x1) {
+              wx0 = 1.f;
+              wx1 = 1.f;
+            }
+            float dx = wx0 + wx1;
 
-      // bi-linear interpolation of all channels
-      int p00 = (y0 * src.width_ + x0) * src.channels_;
-      int p10 = (y1 * src.width_ + x0) * src.channels_;
-      int p01 = (y0 * src.width_ + x1) * src.channels_;
-      int p11 = (y1 * src.width_ + x1) * src.channels_;
+            // bi-linear interpolation of all channels
+            int p00 = (y0 * src.width_ + x0) * src.channels_;
+            int p10 = (y1 * src.width_ + x0) * src.channels_;
+            int p01 = (y0 * src.width_ + x1) * src.channels_;
+            int p11 = (y1 * src.width_ + x1) * src.channels_;
 
-      for (int c = 0; c < src.channels_; ++c) {
-        out.data_[p + c] =
-            static_cast<unsigned char>(std::round((src.data_[p00 + c] * wx1 * wy1 + src.data_[p10 + c] * wx1 * wy0 +
-                                                   src.data_[p01 + c] * wx0 * wy1 + src.data_[p11 + c] * wx0 * wy0) /
-                                                  (dx * dy)));
-      }
-    }
-  }
+            for (int c = 0; c < src.channels_; ++c) {
+              out.data_[p + c] = static_cast<unsigned char>(
+                  std::round((src.data_[p00 + c] * wx1 * wy1 + src.data_[p10 + c] * wx1 * wy0 +
+                              src.data_[p01 + c] * wx0 * wy1 + src.data_[p11 + c] * wx0 * wy0) /
+                             (dx * dy)));
+            }
+          }
+        }
+      },
+      tbb::simple_partitioner());
 
   auto finish = std::chrono::steady_clock::now();
   float ms = std::chrono::duration_cast<std::chrono::duration<float>>(finish - start).count() * 1000.f;
@@ -304,11 +286,11 @@ void write_to(Image const& src, Image& dst, int x, int y) {
 
   auto start = std::chrono::steady_clock::now();
 
-  for (int y = 0; y < y_height; ++y) {
+  tbb::parallel_for<int>(0, y_height, 1, [&](int y) {
     int src_p = ((src_y_from + y) * src.width_ + src_x_from) * src.channels_;
     int dst_p = ((dst_y_from + y) * dst.width_ + dst_x_from) * dst.channels_;
     std::memcpy(dst.data_ + dst_p, src.data_ + src_p, x_width * src.channels_);
-  }
+  });
 
   auto finish = std::chrono::steady_clock::now();
   float ms = std::chrono::duration_cast<std::chrono::duration<float>>(finish - start).count() * 1000.f;
@@ -325,7 +307,7 @@ Image grayscale(Image const& src) {
   auto start = std::chrono::steady_clock::now();
 
   Image dst = src;
-  for (int y = 0; y < dst.height_; ++y) {
+  tbb::parallel_for<int>(0, dst.height_, 1, [&](int y) {
     for (int x = 0; x < dst.width_; ++x) {
       int p = (y * dst.width_ + x) * dst.channels_;
       int r = dst.data_[p];
@@ -337,7 +319,7 @@ Image grayscale(Image const& src) {
       dst.data_[p + 1] = y;
       dst.data_[p + 2] = y;
     }
-  }
+  });
 
   auto finish = std::chrono::steady_clock::now();
   float ms = std::chrono::duration_cast<std::chrono::duration<float>>(finish - start).count() * 1000.f;
@@ -356,7 +338,8 @@ Image tint(Image const& src, int r, int g, int b) {
   auto start = std::chrono::steady_clock::now();
 
   Image dst = src;
-  for (int y = 0; y < dst.height_; ++y) {
+
+  tbb::parallel_for<int>(0, dst.height_, 1, [&](int y) {
     for (int x = 0; x < dst.width_; ++x) {
       int p = (y * dst.width_ + x) * dst.channels_;
       int r0 = dst.data_[p];
@@ -366,7 +349,7 @@ Image tint(Image const& src, int r, int g, int b) {
       dst.data_[p + 1] = g0 * g / 255;
       dst.data_[p + 2] = b0 * b / 255;
     }
-  }
+  });
 
   auto finish = std::chrono::steady_clock::now();
   float ms = std::chrono::duration_cast<std::chrono::duration<float>>(finish - start).count() * 1000.f;
@@ -409,7 +392,7 @@ int main(int argc, const char* argv[]) {
 
   std::vector<Image> images;
   images.resize(files.size());
-  tbb::parallel_for<int>(0, files.size(), 1, [&](int i) {
+  for (unsigned int i = 0; i < files.size(); ++i) {
     auto& img = images[i];
     img.open(files[i]);
     img.show(columns, rows);
@@ -429,7 +412,7 @@ int main(int argc, const char* argv[]) {
     std::cout << '\n';
     out.show(columns, rows);
     out.write(std::format("out{:02d}.jpg", i));
-  });
+  }
 
   return 0;
 }

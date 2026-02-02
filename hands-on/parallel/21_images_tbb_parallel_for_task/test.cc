@@ -40,9 +40,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define FMT_HEADER_ONLY
-#include "fmt/core.h"
-#include "fmt/color.h"
+#include "sixel.h"
 
 using namespace std::literals;
 
@@ -153,52 +151,34 @@ struct Image {
     data_ = nullptr;
   }
 
+  static int sixel_write(char* data, int size, void* priv) {
+    // callback for output sixel
+    return fwrite(data, 1, size, (FILE*)priv);
+  }
+
   // show an image on the terminal, using up to max_width columns (with one block per column) and up to max_height lines (with two blocks per line)
   void show(int max_width, int max_height) {
     if (data_ == nullptr) {
       return;
     }
 
-    // two blocks per line
-    max_height = max_height * 2;
+    sixel_output_t* output = nullptr;
+    auto status = sixel_output_new(&output, sixel_write, stdout, nullptr);
+    if (SIXEL_FAILED(status))
+      exit(EXIT_FAILURE);
 
-    // find the best size given the max width and height and the image aspect ratio
-    int width, height;
-    if (width_ * max_height > height_ * max_width) {
-      width = max_width;
-      height = max_width * height_ / width_;
-    } else {
-      width = max_height * width_ / height_;
-      height = max_height;
+    sixel_dither_t* dither = sixel_dither_get(SIXEL_BUILTIN_XTERM256);
+    if (channels_ == 1) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_G8);
+    } else if (channels_ == 3) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGB888);
+    } else if (channels_ == 4) {
+      sixel_dither_set_pixelformat(dither, SIXEL_PIXELFORMAT_RGBA8888);
     }
 
-    std::osyncstream out(std::cout);
-
-    // two blocks per line
-    for (int j = 0; j < height; j += 2) {
-      int y1 = j * height_ / height;
-      int y2 = (j + 1) * height_ / height;
-      // one block per column
-      for (int i = 0; i < width; ++i) {
-        int x = i * width_ / width;
-        int p = (y1 * width_ + x) * channels_;
-        int r = data_[p];
-        int g = data_[p + 1];
-        int b = data_[p + 2];
-        auto style = fmt::fg(fmt::rgb(r, g, b));
-        if (y2 < height_) {
-          p = (y2 * width_ + x) * channels_;
-          r = data_[p];
-          g = data_[p + 1];
-          b = data_[p + 2];
-          style |= fmt::bg(fmt::rgb(r, g, b));
-        }
-        out << fmt::format(style, "▀");
-      }
-      out << '\n';
-    }
-
-    // out is streamed to std::cout and flushed
+    status = sixel_encode(data_, width_, height_, 0, dither, output);
+    if (SIXEL_FAILED(status))
+      exit(EXIT_FAILURE);
   }
 };
 
@@ -407,100 +387,29 @@ int main(int argc, const char* argv[]) {
   }
 #endif
 
-  // count how many images have been processed
-  std::atomic<int> counter = 0;
+  std::vector<Image> images;
+  images.resize(files.size());
+  tbb::parallel_for<int>(0, files.size(), 1, [&](int i) {
+    auto& img = images[i];
+    img.open(files[i]);
+    img.show(columns, rows);
 
-  // create a TBB flow graph
-  tbb::flow::graph graph;
+    Image small = scale(img, img.width_ * 0.5, img.height_ * 0.5);
+    Image gray = grayscale(small);
+    Image tone1 = tint(gray, 168, 56, 172);  // purple-ish
+    Image tone2 = tint(gray, 100, 143, 47);  // green-ish
+    Image tone3 = tint(gray, 255, 162, 36);  // gold-ish
 
-  // create the graph nodes
-  using ImagePtr = std::shared_ptr<Image>;
-  using ImageCmb = std::tuple<ImagePtr, ImagePtr, ImagePtr, ImagePtr>;
+    Image out(img.width_, img.height_, img.channels_);
+    write_to(tone1, out, 0, 0);
+    write_to(tone2, out, img.width_ * 0.5, 0);
+    write_to(tone3, out, 0, img.height_ * 0.5);
+    write_to(gray, out, img.width_ * 0.5, img.height_ * 0.5);
 
-  tbb::flow::function_node<std::string, ImagePtr> node_open(  // read the image from a file
-      graph,
-      tbb::flow::unlimited,
-      [](std::string filename) -> ImagePtr { return std::make_shared<Image>(filename); });
-
-  tbb::flow::function_node<ImagePtr, tbb::flow::continue_msg> node_show(  // render the image on the terminal
-      graph,
-      tbb::flow::unlimited,
-      [rows, columns](ImagePtr img) { img->show(columns, rows); });
-
-  tbb::flow::function_node<ImagePtr, ImagePtr> node_scale(  // scale down the image to 0.5x0.5
-      graph,
-      tbb::flow::unlimited,
-      [](ImagePtr img) -> ImagePtr {
-        return std::make_shared<Image>(scale(*img, img->width_ * 0.5, img->height_ * 0.5));
-      });
-
-  tbb::flow::function_node<ImagePtr, ImagePtr> node_gray(  // generate a grayscale image
-      graph,
-      tbb::flow::unlimited,
-      [](ImagePtr img) -> ImagePtr { return std::make_shared<Image>(grayscale(*img)); });
-
-  tbb::flow::function_node<ImagePtr, ImagePtr> node_tint1(  // apply a purple-ish tint
-      graph,
-      tbb::flow::unlimited,
-      [](ImagePtr img) -> ImagePtr { return std::make_shared<Image>(tint(*img, 168, 56, 172)); });
-
-  tbb::flow::function_node<ImagePtr, ImagePtr> node_tint2(  // apply a green-ish tint
-      graph,
-      tbb::flow::unlimited,
-      [](ImagePtr img) -> ImagePtr { return std::make_shared<Image>(tint(*img, 100, 143, 47)); });
-
-  tbb::flow::function_node<ImagePtr, ImagePtr> node_tint3(  // apply a gold-ish tint
-      graph,
-      tbb::flow::unlimited,
-      [](ImagePtr img) -> ImagePtr { return std::make_shared<Image>(tint(*img, 255, 162, 36)); });
-
-  tbb::flow::join_node<ImageCmb, tbb::flow::queueing> node_join(graph);
-
-  tbb::flow::function_node<ImageCmb, ImagePtr> node_result(  // combine the images
-      graph,
-      tbb::flow::unlimited,
-      [](ImageCmb images) -> ImagePtr {
-        int width = std::get<0>(images)->width_;
-        int height = std::get<0>(images)->height_;
-        int channels = std::get<0>(images)->channels_;
-        Image out(width * 2, height * 2, channels);
-        write_to(*std::get<0>(images), out, 0, 0);
-        write_to(*std::get<1>(images), out, width, 0);
-        write_to(*std::get<2>(images), out, 0, height);
-        write_to(*std::get<3>(images), out, width, height);
-        return std::make_shared<Image>(std::move(out));
-      });
-
-  tbb::flow::function_node<ImagePtr, tbb::flow::continue_msg> node_write(  // write the image to a file
-      graph,
-      tbb::flow::unlimited,
-      [&counter](ImagePtr img) {
-        std::string filename = std::format("out{:02d}.jpg", counter++);
-        img->write(filename);
-      });
-
-  // create the graph edges
-  tbb::flow::make_edge(node_open, node_show);
-  tbb::flow::make_edge(node_open, node_scale);
-  tbb::flow::make_edge(node_scale, node_gray);
-  tbb::flow::make_edge(node_gray, node_tint1);
-  tbb::flow::make_edge(node_gray, node_tint2);
-  tbb::flow::make_edge(node_gray, node_tint3);
-  tbb::flow::make_edge(node_tint1, tbb::flow::input_port<0>(node_join));
-  tbb::flow::make_edge(node_tint2, tbb::flow::input_port<1>(node_join));
-  tbb::flow::make_edge(node_tint3, tbb::flow::input_port<2>(node_join));
-  tbb::flow::make_edge(node_gray, tbb::flow::input_port<3>(node_join));
-  tbb::flow::make_edge(node_join, node_result);
-  tbb::flow::make_edge(node_result, node_show);
-  tbb::flow::make_edge(node_result, node_write);
-
-  // send data through the graph
-  for (auto const& filename : files) {
-    node_open.try_put(filename);
-  }
-
-  // wait for all operation to complete
-  graph.wait_for_all();
+    std::cout << '\n';
+    out.show(columns, rows);
+    out.write(std::format("out{:02d}.jpg", i));
+  });
 
   return 0;
 }
