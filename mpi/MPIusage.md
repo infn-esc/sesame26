@@ -60,6 +60,6 @@ $ mpirun -n 2 MPI_Pi.out    # try to increase the number of processes
 5. The Trivial MPI N-Body Simulation
 
 ```bash
-$ mpic++ -o MPI_Nbody.out MPI_Nbody.cpp
-$ mpirun -n 2 MPI_Nbody.out    # try to increase the number of processes
+$ mpic++ -o MPI_NBody.out MPI_NBody.cpp
+$ mpirun -n 2 MPI_NBody.out    # try to increase the number of processes
 ```
