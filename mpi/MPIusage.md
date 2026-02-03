@@ -35,7 +35,6 @@ $ mpirun -hostfile machinefile.txt -n 2 MPI_Hello.out
 You can now go and try with the other exercises avalble on the `sesame/hands-on/mpi` directory (see the slides for more details):
 
 1. The MPI PingPong
-
 ```bash
 $ mpic++ -o PingPong.out PingPong.cpp
 $ mpirun -n 2 -hostfile machinefile.txt PingPong.out
