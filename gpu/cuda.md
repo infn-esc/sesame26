@@ -8,15 +8,6 @@ The goal of this section is to introduce you to GPU programming using CUDA.
 
 ### Hands-on
 
-Remember to append the following two lines to your `~/.bashrc` file:
-
-```bash
-export PATH=/usr/local/cuda-13/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-13/lib64:$LD_LIBRARY_PATH
-```
-
-
-
 Check that your environment is correctly configured to compile CUDA code by running:
 ```bash
 $ nvcc --version
