@@ -1,6 +1,6 @@
 
 NVCC ?= nvcc
-TARGET ?= kernel.out
+TARGET ?= ex02.out
 SRCS := kernel.cu
 OBJS := $(SRCS:.cu=.o)
 NVCCFLAGS ?= -O2 -std=c++20
