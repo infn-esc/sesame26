@@ -46,18 +46,18 @@ $ mpirun -n 2 -hostfile machinefile.txt PingPong.out
 $ mpic++ -o NoBloc_PingPong.out NoBloc_PingPong.cpp
 $ mpirun -n 2 -hostfile machinefile.txt NoBloc_PingPong.out
 ```
-1. The trivial BandWidth measure
+3. The trivial BandWidth measure
 ```bash
 $ mpic++ -o BandWidth.out BandWidth.cpp
 $ mpirun -n 2 -hostfile machinefile.txt BandWidth.out  # this will use infiniband
 $ mpirun -n 2 -hostfile machinefile.txt --mca btl_tcp_if_include eth0 BandWidth.out    #this will use ethernet
 ```
-1. The MPI Pi Computation
+4. The MPI Pi Computation
 ```bash
 $ mpic++ -o MPI_Pi.out MPI_Pi.cpp
 $ mpirun -n 2 MPI_Pi.out    # try to increase the number of processes
 ```
-1. The Trivial MPI N-Body Simulation
+5. The Trivial MPI N-Body Simulation
 
 ```bash
 $ mpic++ -o MPI_Nbody.out MPI_Nbody.cpp
