@@ -32,10 +32,20 @@ $ mpic++ -o MPI_Hello.out MPI_Hello.cpp
 $ mpirun  -n 2 MPI_Hello.out
 $ mpirun -hostfile machinefile.txt -n 2 MPI_Hello.out
 ```
-
 You can now go and try with the other exercises avalble on the `sesame/hands-on/mpi` directory (see the slides for more details):
 
 1. The MPI PingPong
+
+```bash
+$ mpic++ -o PingPong.out PingPong.cpp
+$ mpirun -n 2 -hostfile machinefile.txt PingPong.out
+```
 1. The Non-Blocking MPI PingPong
+
+```bash
+$ mpic++ -o -o NoBloc_PingPong.out NoBloc_PingPong.cpp
+$ mpirun -n 2 -hostfile machinefile.txt NoBloc_PingPong.out
+```
+1. The trivial BandWidth measure
 1. The MPI Pi Computation
 1. The Trivial MPI N-Body Simulation
