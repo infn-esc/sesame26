@@ -27,12 +27,6 @@ menu:
       label: False Sharing 
     - name: asan
       label: Address Sanitizer
-#   - name: architecture
-#     items:
-#     - name: discoverHW
-#       label: Discover Hardware Architecture
-#     - name: perf
-#       label: Profiling using "perf"
   - name: cpp
     label: C++
     items:
@@ -40,13 +34,6 @@ menu:
     - name: algorithms
     - name: move_ops
       label: Move operations
-#   - name: parallelism
-#     label: PARALLELISM
-#     items:
-#     - name: parcpp
-#       label: Parallel C++
-#     - name: cuda
-#       label: CUDA
   - name: mpi
     label: MPI
     items:
@@ -59,13 +46,8 @@ menu:
       label: Using C++ in Python
     - name: py_to_cpp
       label: Using Python in C++
-
-
-# defaults:
-#   -
-#     scope:
-#       path: "basic/"
-#       type: "posts"
-#     values:
-#       category: "basic"
-#       layout: "main"
+  - name: gpu
+    label: GPU Programming
+    items:
+    - name: cuda
+      label: CUDA
