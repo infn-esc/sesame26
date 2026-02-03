@@ -26,11 +26,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <stdexcept>
 #include <vector>
 
-#ifdef __linux__
-#include <sys/ioctl.h>
-#include <unistd.h>
-#endif
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -151,8 +146,8 @@ struct Image {
     return fwrite(data, 1, size, (FILE*)priv);
   }
 
-  // show an image on the terminal, using up to max_width columns (with one block per column) and up to max_height lines (with two blocks per line)
-  void show(int max_width, int max_height) {
+  // show an image on the terminal
+  void show() {
     if (data_ == nullptr) {
       return;
     }
@@ -369,25 +364,12 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  int rows = 80;
-  int columns = 80;
-#if defined(__linux__) && defined(TIOCGWINSZ)
-  if (isatty(STDOUT_FILENO)) {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    if (w.ws_row > 1 and w.ws_col > 1) {
-      rows = w.ws_row - 1;
-      columns = w.ws_col - 1;
-    }
-  }
-#endif
-
   std::vector<Image> images;
   images.resize(files.size());
   for (unsigned int i = 0; i < files.size(); ++i) {
     auto& img = images[i];
     img.open(files[i]);
-    img.show(columns, rows);
+    img.show();
 
     Image small = scale(img, img.width_ * 0.5, img.height_ * 0.5);
     Image gray = grayscale(small);
@@ -402,7 +384,7 @@ int main(int argc, const char* argv[]) {
     write_to(gray, out, img.width_ * 0.5, img.height_ * 0.5);
 
     std::cout << '\n';
-    out.show(columns, rows);
+    out.show();
     out.write(std::format("out{:02d}.jpg", i));
   }
 

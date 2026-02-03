@@ -27,11 +27,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <syncstream>
 #include <vector>
 
-#ifdef __linux__
-#include <sys/ioctl.h>
-#include <unistd.h>
-#endif
-
 #include <tbb/tbb.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -156,8 +151,8 @@ struct Image {
     return fwrite(data, 1, size, (FILE*)priv);
   }
 
-  // show an image on the terminal, using up to max_width columns (with one block per column) and up to max_height lines (with two blocks per line)
-  void show(int max_width, int max_height) {
+  // show an image on the terminal
+  void show() {
     if (data_ == nullptr) {
       return;
     }
@@ -374,19 +369,6 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  int rows = 80;
-  int columns = 80;
-#if defined(__linux__) && defined(TIOCGWINSZ)
-  if (isatty(STDOUT_FILENO)) {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    if (w.ws_row > 1 and w.ws_col > 1) {
-      rows = w.ws_row - 1;
-      columns = w.ws_col - 1;
-    }
-  }
-#endif
-
   // count how many images have been processed
   std::atomic<int> counter = 0;
 
@@ -405,7 +387,7 @@ int main(int argc, const char* argv[]) {
   tbb::flow::function_node<ImagePtr, tbb::flow::continue_msg> node_show(  // render the image on the terminal
       graph,
       tbb::flow::unlimited,
-      [rows, columns](ImagePtr img) { img->show(columns, rows); });
+      [](ImagePtr img) { img->show(); });
 
   tbb::flow::function_node<ImagePtr, ImagePtr> node_scale(  // scale down the image to 0.5x0.5
       graph,
