@@ -1,12 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Exercise 03 – Two‑Dimensional Grid & Block  (STUDENT VERSION)
+// Exercise 03 – Two‑Dimensional Grid & Block  
 //
 // Goal:
 //   • Launch a 2‑D grid of 2‑D blocks so each thread writes
 //       M[row, col] = row * numCols + col
 //   • Copy the matrix back to the host and verify the result.
 //
-// Build:   nvcc -std=c++20 ex03_fill_matrix.cu -o ex03
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // Recommended naming conventions (used consistently across all exercises):
@@ -22,7 +21,7 @@
 //   Any component you omit defaults to 1, so `dim3 t(32, 8)` means
 //   {x=32, y=8, z=1}.  Internally it is defined as
 //        struct dim3 { unsigned int x, y, z; };
-//   Nothing magical – just a convenient 3‑tuple.
+//   Nothing magical: just a convenient 3‑tuple.
 //
 
 // C++ headers

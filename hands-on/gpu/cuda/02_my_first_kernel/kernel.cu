@@ -7,7 +7,6 @@
 //       d_a[i] = i + 42
 //   • Copy the result back to the host and verify it
 //
-// Build:   nvcc -std=c++17 launch_kernel.cu -o ex02
 // ─────────────────────────────────────────────────────────────────────────────
 
 // C++ headers

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Exercise 04 – Block-Level Reduction  (STUDENT VERSION)
+// Exercise 04 – Block-Level Reduction  
 //
 // Goal:
 //   • Compute the sum of a large 1‑D array on the GPU using two kernel launches:
@@ -7,7 +7,6 @@
 //       2) A second launch (single block) reduces those partial sums
 //   • Compare with the reference result computed on the host.
 //
-// Build:   nvcc -std=c++20 ex04_block_sum_student.cu -o ex04
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // Follow the naming conventions introduced in Exercise 03:
