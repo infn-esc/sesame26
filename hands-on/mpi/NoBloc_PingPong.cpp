@@ -20,8 +20,8 @@ int main(int argc, char* argv[])
 	{
     
                 // Rank 0 sends data to rank 1
-                // -----------------------------------------
-                // Non-blocking receive for the reply
+		// -----------------------------------------
+		// Non-blocking receive for the reply
 		int value_received = 0;
 		MPI_Request recv_request;
                 MPI_Irecv(&value_received, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, &recv_request);
