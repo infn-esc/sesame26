@@ -3,7 +3,7 @@ NVCC ?= nvcc
 TARGET ?= kernel.out
 SRCS := kernel.cu
 OBJS := $(SRCS:.cu=.o)
-NVCCFLAGS ?= -O2 -std=c++14 -arch=sm_61
+NVCCFLAGS ?= -O2 -std=c++20
 
 
 
