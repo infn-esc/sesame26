@@ -40,25 +40,23 @@ You can now go and try with the other exercises avalble on the `sesame/hands-on/
 $ mpic++ -o PingPong.out PingPong.cpp
 $ mpirun -n 2 -hostfile machinefile.txt PingPong.out
 ```
-2. The Non-Blocking MPI PingPong
-
+1. The Non-Blocking MPI PingPong
 ```bash
 $ mpic++ -o NoBloc_PingPong.out NoBloc_PingPong.cpp
 $ mpirun -n 2 -hostfile machinefile.txt NoBloc_PingPong.out
 ```
-3. The trivial BandWidth measure
+1. The trivial BandWidth measure
 ```bash
 $ mpic++ -o BandWidth.out BandWidth.cpp
 $ mpirun -n 2 -hostfile machinefile.txt BandWidth.out  # this will use infiniband
-$ mpirun -n 2 -hostfile machinefile.txt --mca btl_tcp_if_include eth0 BandWidth.out    #this will use ethernet
+$ mpirun -n 2 -hostfile machinefile.txt --mca btl tcp,self,vader --mca pml ob1 --mca btl_tcp_if_include eth0 BandWidth.out    #this will use ethernet
 ```
-4. The MPI Pi Computation
+1. The MPI Pi Computation
 ```bash
 $ mpic++ -o MPI_Pi.out MPI_Pi.cpp
 $ mpirun -n 2 MPI_Pi.out    # try to increase the number of processes
 ```
-5. The Trivial MPI N-Body Simulation
-
+1. The Trivial MPI N-Body Simulation
 ```bash
 $ mpic++ -o MPI_NBody.out MPI_NBody.cpp
 $ mpirun -n 2 MPI_NBody.out    # try to increase the number of processes
