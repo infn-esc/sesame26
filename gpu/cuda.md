@@ -111,7 +111,7 @@ make && ./ex01.out   # prints “Exercise 1 – memory model: PASSED 🎉”
 
 ### Variation
 
-Add a non‑blocking version using **streams** + `cudaMemcpyAsync` and time a 100 MB H↔D copy to estimate PCIe bandwidth.
+Allocate the host buffer on pinned host memory with `cudaMallocHost` and time a 100 MB H↔D copy to estimate PCIe bandwidth.
 
 ---
 
