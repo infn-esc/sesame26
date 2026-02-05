@@ -19,16 +19,7 @@ Finally bind all the code in a Python module and test it in Python.
 
 Hint: `E = sqrt(px^2 + py^2 + pz^2 + mass^2)`
 
-## Exercise 2: Convolutional kernels
-In this context a convolutional kernel is a scalar function of the distance between two points.
-Define an abstract class `Kernel`, and two derived classes `GaussianKernel` and
-`ExponentialKernel`. Each class should define an `apply` method, that applies the
-respective function to the point distance.
-
-On the Python side, define a class `StepKernel`, whose application
-returns a value if the distance is below a certain threshold, and zero otherwise.
-
-## Exercise 3: Matrix
+## Exercise 2: Matrix
 Define a class `Matrix`, with the getters for the sizes and the data pointer, as well as
 the two overloads of the `operator[]`. Then overload all the main arithmetic operators:
 - addition and subtraction of two matrices
@@ -40,6 +31,3 @@ the two overloads of the `operator[]`. Then overload all the main arithmetic ope
 
 Then bind the class, defining all the arithmetic operators, the `__len__` and `__str__`
 variables and the `__getitem__` and `__setitem__` methods.
-
-### Part 2
-Expose the class as a Python buffer.
