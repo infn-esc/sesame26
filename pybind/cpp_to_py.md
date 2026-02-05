@@ -11,11 +11,13 @@ Define a class `Particle` with the following attributes:
 - `x`, `y`, `z` coordinates (double)
 - `px`, `py`, `pz` momentum (double)
 - `mass` in GeV (double)
-For this class write the necessary constructors, getters and setters, as well as two methods
-returning the particle's energy and invariant mass.  
+For this class write the necessary constructors, getters and setters, as well as a methods
+returning the particle's energy.
 Also define a function that returns the distance between two particles.
 
 Finally bind all the code in a Python module and test it in Python.
+
+Hint: `E = sqrt(px^2 + py^2 + pz^2 + mass^2)`
 
 ## Exercise 2: Convolutional kernels
 In this context a convolutional kernel is a scalar function of the distance between two points.

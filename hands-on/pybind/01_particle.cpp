@@ -8,7 +8,7 @@ class Particle {
 public:
   // Step 1.1: Define getters and setters for the data members
 
-  // Step 2: Write methods returning the energy and invariant mass of the particle
+  // Step 2: Write a method returning the energy of the particle
 };
 
 // Step 3: Write a function returning the distance between two particles
